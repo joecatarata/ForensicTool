@@ -9,7 +9,7 @@ class Steganographer:
             "Fibonacci": generators.fibonacci,
             "Eratosthenes": generators.eratosthenes,
             "Logarithm": generators.log_gen
-        }
+        } #Choices for the generator sets
 
     def encodePng(self, path, string):
         if ".png" not in path:
@@ -25,6 +25,8 @@ class Steganographer:
             path = "./" + path
         return lsb.reveal(path)
         #Returns string
+
+    #Encodes string to img with a generator set
     def encodePngWithSet(self, path, string, choice=None):
         if ".png" not in path:
             path = path + ".png"
@@ -37,6 +39,7 @@ class Steganographer:
         newImage.save("./steganized/" + path)
         print("Called!")
 
+    #Decodes the string from the image made with a generator set
     def decodePngWithSet(self, path, choice):
         if "./" not in path:
             path = "./" + path
@@ -45,7 +48,11 @@ class Steganographer:
         #Returns string
 #for testing
 steganographer = Steganographer()
-# steganographer.encodePng("wallpaper.png", "hello world")
-# print(steganographer.decodePng("./steganized/wallpaper.png"))
+
+#Basic Steganography with LSB(Least Significant Bit)
+steganographer.encodePng("wallpaper.png", "hello world")
+print(steganographer.decodePng("./steganized/wallpaper.png"))
+
+#Use same set for encode and decode for program to decode properly
 steganographer.encodePngWithSet("wallpaper.png", "hindi mo ako kaya", "Eratosthenes")
 print(steganographer.decodePngWithSet("./steganized/wallpaper.png", "Eratosthenes"))
