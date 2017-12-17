@@ -1,0 +1,2 @@
+xhost local:root
+sudo DISPLAY=$DISPLAY gedit /etc/profile
