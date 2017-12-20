@@ -6,6 +6,7 @@ from tkinter import ttk
 from stat import * # ST_SIZE etc
 from DriveWiper.Formatter import *
 from Cipher.Cipher import *
+from Steganography.steganography import *
 #import win32api
 import psutil
 import time
@@ -28,6 +29,7 @@ class Application(Tk):
         self.Main.FileCarverbutt["command"] = lambda: [f() for f in [self.Main.destroy, self.show_File_Carver]]
         self.Main.MACHINE_PROJECT2butt["command"] = lambda: [f() for f in [self.Main.destroy, self.show_Drive_Wiper]]
         self.Main.MACHINE_PROJECT3butt["command"] = lambda: [f() for f in [self.Main.destroy, self.show_Cipher]]
+        self.Main.MACHINE_PROJECT4butt["command"] = lambda: [f() for f in [self.Main.destroy, self.show_Steganography]]
         self.Main.tkraise()
     
     def show_File_Carver(self):   
@@ -48,7 +50,15 @@ class Application(Tk):
         self.MP3 = Machine_Project_3_Frame(master=self)
         self.MP3.StartButt["command"] = self.MP3.startcipher
         self.MP3.DecodeButt["command"] = self.MP3.startdecipher
+        self.MP3.backButt["command"] = lambda: [f() for f in [self.MP3.destroy,self.show_Main]]
         self.MP3.tkraise()
+    
+    def show_Steganography(self):
+        self.MP4 = Machine_Project_4_Frame(master=self)
+        self.MP4.encodebutt["command"] = self.MP4.encode_image
+        self.MP4.decodebutt["command"] = self.MP4.decode_image
+        self.MP4.backButt["command"] = lambda: [f() for f in [self.MP4.destroy,self.show_Main]]
+        self.MP4.tkraise()
         
     
     def center(self, sub=None):
@@ -104,10 +114,138 @@ class Main_Frame(Frame):
         
         #NAME IS TENTATIVE
         self.MACHINE_PROJECT4butt = Button(self, font=("calibri", 12))
-        self.MACHINE_PROJECT4butt["text"] = "Machine Project 4"
+        self.MACHINE_PROJECT4butt["text"] = "Steganography"
         self.MACHINE_PROJECT4butt.grid(in_=self.programFrame, column=1, row=4, sticky=E+W, padx=15, pady=5, columnspan=4)
 
 
+        
+class Machine_Project_4_Frame(Frame):
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
+        self.pack(pady=15)
+        
+        master.wm_title("Steganography")
+        self.init_ui()
+        
+    def browsecsv(self):
+        Tk().withdraw() 
+        destination = filedialog.askopenfile()
+        if destination:
+#            print(dir(self.destination))
+            print(destination.name)
+            self.currentImage = destination.name
+        else:
+            print("None")
+    
+    def lbrowsecsv(self):
+        Tk().withdraw() 
+        destination = filedialog.askopenfile()
+        if destination:
+#            print(dir(self.destination))
+            print(destination.name)
+            self.currentDecodeImage = destination.name
+        else:
+            print("None")
+            
+    def encode_image(self):
+        print("Encoding")
+        plaintext = self.plain_text_area.get("1.0",'end-1c')
+        
+        steganographer = Steganographer()
+
+        if self.var_algo.get() == "Basic":
+            steganographer.encodePng(self.currentImage, plaintext)
+        else:
+            steganographer.encodePngWithSet(self.currentImage, plaintext, self.var_algo.get())
+    
+    def decode_image(self):
+        print("Decoding")
+        steganographer = Steganographer()
+        
+        if self.lvar_algo.get() == "Basic":
+            message = steganographer.decodePng(self.currentDecodeImage)
+        else:
+            message = steganographer.decodePngWithSet(self.currentDecodeImage, self.lvar_algo.get())
+        
+        self.decode_text_area.delete('1.0', END)
+        self.decode_text_area.insert(END, message)
+        
+
+    def init_ui(self):
+        self.currentImage = ""
+        self.upperdiv = LabelFrame(self, text="Encode")
+        self.upperdiv.pack()
+        
+        #ENCODE
+        self.choicediv = LabelFrame(self)
+        self.choicediv.grid(in_=self.upperdiv, column=1, row=1, columnspan=10)
+        
+        self.browsebutt = Button(self)
+        self.browsebutt["text"] = "Select Image File"
+        self.browsebutt["command"] = self.browsecsv
+        self.browsebutt.grid(in_=self.choicediv, column=3, row=1,sticky=E+W, padx=5, columnspan=2)
+        
+        algos = ["Basic", "Fibonacci", "Eratosthenes", "Logarithm"]
+        self.var_algo_label = StringVar() 
+        self.algo_label = Label(self,textvariable=self.var_algo_label, font=("calibri", 12))
+        self.var_algo_label.set("Generators:")
+        self.algo_label.grid(in_=self.choicediv, column=3, row=2, padx=5)
+        
+        self.var_algo = StringVar(self)
+        self.var_algo.set(algos[0])
+        self.algo_dropdown = OptionMenu(self, self.var_algo, *algos)
+        self.algo_dropdown.grid(in_=self.choicediv,column=4, row=2, padx=5)
+        
+        self.encodebutt = Button(self)
+        self.encodebutt["text"] = "Encode"
+        self.encodebutt.grid(in_=self.choicediv, column=3, row=5,sticky=E+W, padx=5, columnspan=2)
+        
+        self.plain_text_div = LabelFrame(self, text="Text")
+        self.plain_text_div.grid(in_=self.upperdiv, column=1, row=5, columnspan=10)
+        self.plain_text_area =  Text(self.plain_text_div, height=5)
+        self.plain_text_area.grid(in_=self.plain_text_div,column=1, row=1,sticky=E+W, padx=5, columnspan=1, rowspan=1)
+        
+        
+        #DECODE
+        self.currentDecodeImage = ""
+        self.lowerdiv = LabelFrame(self, text="Decode")
+        self.lowerdiv.pack()
+        
+        
+        self.lchoicediv = LabelFrame(self)
+        self.lchoicediv.grid(in_=self.lowerdiv, column=1, row=1, columnspan=10)
+        
+        self.lbrowsebutt = Button(self)
+        self.lbrowsebutt["text"] = "Select Image File"
+        self.lbrowsebutt["command"] = self.lbrowsecsv
+        self.lbrowsebutt.grid(in_=self.lchoicediv, column=3, row=1,sticky=E+W, padx=5, columnspan=2)
+        
+        algos = ["Basic", "Fibonacci", "Eratosthenes", "Logarithm"]
+        self.lvar_algo_label = StringVar() 
+        self.lalgo_label = Label(self,textvariable=self.lvar_algo_label, font=("calibri", 12))
+        self.lvar_algo_label.set("Generators:")
+        self.lalgo_label.grid(in_=self.lchoicediv, column=3, row=2, padx=5)
+        
+        self.lvar_algo = StringVar(self)
+        self.lvar_algo.set(algos[0])
+        self.lalgo_dropdown = OptionMenu(self, self.lvar_algo, *algos)
+        self.lalgo_dropdown.grid(in_=self.lchoicediv,column=4, row=2, padx=5)
+        
+        self.decodebutt = Button(self)
+        self.decodebutt["text"] = "Decode"
+        self.decodebutt.grid(in_=self.lchoicediv, column=3, row=5,sticky=E+W, padx=5, columnspan=2)
+        
+        self.decode_text_div = LabelFrame(self, text="Decoded Text")
+        self.decode_text_div.grid(in_=self.lowerdiv, column=1, row=5, columnspan=10)
+        self.decode_text_area =  Text(self.decode_text_div, height=5)
+        self.decode_text_area.grid(in_=self.decode_text_div,column=1, row=1,sticky=E+W, padx=5, columnspan=1, rowspan=1)
+        
+        self.backButt = Button(self, font=("calibri", 12),height = 1, width = 10)
+        self.backButt["text"] = "Back"
+        self.backButt.pack(in_=self, padx=10, pady=3)
+    
+        
+        
 class Machine_Project_3_Frame(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
@@ -220,6 +358,10 @@ class Machine_Project_3_Frame(Frame):
         
         self.decipher_text_area =  Text(self.decipher_text_div, height=5)
         self.decipher_text_area.grid(in_=self.decipher_text_div,column=1, row=1,sticky=E+W, padx=5, columnspan=1, rowspan=1)
+        
+        self.backButt = Button(self, font=("calibri", 12),height = 1, width = 10)
+        self.backButt["text"] = "Back"
+        self.backButt.pack(in_=self, padx=10, pady=3)
         
         
         
