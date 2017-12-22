@@ -2,7 +2,11 @@
 * A combination of DriveWiper, FileCarver, text cipher/decipher and steganography.
 
 ## DriveWiper
-This program has:
+This program uses mkfs
+### Dependencies
+1. exFatUtils
+2. ntfs-3g
+
 ### File Deletion Algorithms
 * Zero-Fill
 * One-Fill
